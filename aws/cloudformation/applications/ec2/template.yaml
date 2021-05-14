@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  LatestAmazonLinuxAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+Resources:
+  DevOpsVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 172.16.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: !Join ['', [!Ref "AWS::StackName", "-vpc" ]]
+
+  DevOpsSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      MapPublicIpOnLaunch: true
+      CidrBlock: 172.16.10.0/24
+      VpcId: !Ref DevOpsVPC
+      Tags:
+      - Key: Name
+        Value: !Join ['', [!Ref "AWS::StackName", "-subnet" ]]
+
+  DevOpsAllowSSHSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH Inbound Traffic
+      GroupName: Allow-SSH
+
+      SecurityGroupEgress:
+      - CidrIp: 0.0.0.0/0
+        ToPort: 0
+        FromPort: 0
+        IpProtocol: -1
+      - CidrIpv6: ::/0
+        ToPort: 0
+        FromPort: 0
+        IpProtocol: -1
+
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        Description: SSH
+        FromPort: 22
+        ToPort: 22
+        IpProtocol: tcp
+      - CidrIpv6: ::/0
+        Description: SSH
+        FromPort: 22
+        ToPort: 22
+        IpProtocol: tcp
+
+      VpcId: !Ref DevOpsVPC
+      Tags:
+      - Key: Name
+        Value: !Join ['', [!Ref "AWS::StackName", "-allow-ssh-sg" ]]
+
+  DevOpsNetworkInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: "Primary Network Interface"
+      GroupSet:
+        - !Ref DevOpsAllowSSHSG
+      PrivateIpAddresses:
+        - Primary: true
+          PrivateIpAddress: 172.16.10.100
+      SubnetId: !Ref DevOpsSubnet
+      Tags:
+      - Key: Name
+        Value: !Join ['', [!Ref "AWS::StackName", "-ni" ]]
+
+  DevOpsInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Join ['', [!Ref "AWS::StackName", "-igw" ]]
+
+  DevOpsInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref DevOpsInternetGateway
+      VpcId: !Ref DevOpsVPC
+
+  DevOpsRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Join ['', [!Ref "AWS::StackName", "-rt" ]]
+      VpcId: !Ref DevOpsVPC
+
+  DevOpsRouteToGW:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref DevOpsInternetGateway
+      RouteTableId: !Ref DevOpsRouteTable
+
+  DevOpsRouteTableSubnet:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DevOpsRouteTable
+      SubnetId: !Ref DevOpsSubnet
+
+  DevOpsEC2Instace:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmazonLinuxAmiId
+      InstanceType: t3.micro
+      NetworkInterfaces:
+        - NetworkInterfaceId: !Ref DevOpsNetworkInterface
+          DeviceIndex: 0
+      KeyName: devops-ec2
+      Tags:
+      - Key: Name
+        Value: !Join ['', [!Ref "AWS::StackName", "-instance1" ]]

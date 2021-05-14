@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Create basic IAM Users and IAM Group for new Region.
+  Also refer to IAM Login Profile Password that needs to be
+  create manually in AWS System Manager Parameter Store.
+
+Parameters:
+  IAMUserPasswordParameterName:
+    Type: AWS::SSM::Parameter::Name
+    Default: IAMUserPassword
+    Description: Enter Parameter Name of IAM User Password Secure String stored in System Manager
+
+  IAMUserPasswordParameterVersion:
+    Type: Number
+    Default: 1
+    Description: Enter the target Version of Parameter Name
+
+Resources:
+  IAMGroupAdmin:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Join ["-", ["admin", !Ref "AWS::Region"]]
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Path: /admin/
+
+  IAMGroupInfra:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Join ["-", ["infra", !Ref "AWS::Region"]]
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Path: /infra/
+
+  IAMUserAdmin:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Join ["-", ["admin", !Ref "AWS::Region"]]
+      Groups:
+        - !Ref IAMGroupAdmin
+      LoginProfile:
+        Password: !Sub ['{{resolve:ssm-secure:${Key}:${Version}}}', { Key: !Ref IAMUserPasswordParameterName, Version: !Ref IAMUserPasswordParameterVersion }]
+
+  IAMUserInfraTerraform:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Join ["-", ["terraform", !Ref "AWS::Region"]]
+      Groups:
+        - !Ref IAMGroupInfra
+
+  IAMUserInfraTerraformAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      Serial: 1
+      Status: Active
+      UserName: !Ref IAMUserInfraTerraform
+
+
+Outputs:
+  IAMUserInfraTerraformAccessKeyId:
+    Description: AccessKeyId for IAMUser Terraform
+    Value: !Ref  IAMUserInfraTerraformAccessKey
+    Export:
+      Name: !Join [":", [ !Ref "AWS::StackName", InfraTerraformAccessKeyId ]]

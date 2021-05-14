@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Create basic Launch Template for EC2 Instance running Tesseract
+
+Parameters:
+  ImageID:
+    Type: String
+    Default: ami-0ca38c7440de1749a
+    Description: Image ID for EC2 Instance
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+
+  SubnetID:
+    Description: Subnet ID
+    Type: AWS::EC2::Subnet::Id
+
+  KeyName:
+    Description: Amazon EC2 Key Pair
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+  LaunchTemplateTesserAct:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: TesseractEC2Template
+      LaunchTemplateData:
+        ImageId: !Ref ImageID
+        InstanceType: !Ref InstanceType
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            echo "Hello World" > /var/tmp/test.txt
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: true
+            SubnetId: !Ref SubnetID
+
+Outputs:
+  LaunchTemplateTesserAct:
+    Description: A reference to the created LaunchTemplateTesserAct
+    Value: !Ref LaunchTemplateTesserAct

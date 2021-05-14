@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Stack for DevOps Professional
+
+
+Parameters:
+  Organization:
+    Type: String
+    Description: "[Optional] Unique name of Organization"
+    Default: "phule"
+
+  StackName:
+    Type: String
+    Description: "[Optional] Unique name of Stack"
+    Default: "devops"
+
+
+Resources:
+  DevOpsAdminGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Join ["-", [!Ref StackName, "admin", !Ref "AWS::Region"]]
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodeCommitFullAccess
+      Path: !Join ["", ["/", !Ref Organization, "/"]]
+
+
+  DevOpsJuniorGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Join ["-", [!Ref StackName, "junior", !Ref "AWS::Region"]]
+      Path: !Join ["", ["/", !Ref Organization, "/"]]
+      Policies:
+      - PolicyName: PhuleAWSCodeCommitDenyChangeMaster
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Deny
+            Action:
+            - codecommit:GitPush
+            - codecommit:DeleteBranch
+            - codecommit:PutFile
+            - codecommit:MergeBranches*
+            - codecommit:MergePullRequest*
+            Resource: !GetAtt DevOpsRepo.Arn
+            Condition:
+              StringEqualsIfExists:
+                codecommit:References:
+                - refs/heads/master
+                - refs/heads/prod
+              "Null":
+                codecommit:References: false
+
+
+  DevOpsIAMUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Join ["-", [!Ref StackName, "codecommit-bot"]]
+      Groups:
+        - !Ref DevOpsAdminGroup
+      LoginProfile:
+        Password: P848353@
+
+
+  DevOpsCodeS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ["-", [!Ref Organization, "codecommit"]]
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: CodeRule
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+
+
+  DevOpsChatBotSlackIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["", [!Ref Organization, "ServiceRoleForAWSChatBot"]]
+      Description: IAM Role for AWS ChatBot
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: management.chatbot.amazonaws.com
+          Action:
+          - sts:AssumeRole
+
+      Path: !Join ["", ["/", !Ref Organization, "/"]]
+
+  DevOpsChatBotSlack:
+    Type: AWS::Chatbot::SlackChannelConfiguration
+    Properties:
+      ConfigurationName: !Join ["-", [!Ref Organization, !Ref StackName, "codecommit-notification-config"]]
+      IamRoleArn: !GetAtt DevOpsChatBotSlackIAMRole.Arn
+      LoggingLevel: NONE
+      SlackChannelId: C020KLXFFUN
+      SlackWorkspaceId: T9PH6GHQ8
+
+
+  DevOpsNotificatiomSlack:
+    Type: AWS::CodeStarNotifications::NotificationRule
+    Properties:
+      Name: Slack Notification Rule
+      Status: ENABLED
+      DetailType: FULL
+      Resource: !GetAtt DevOpsRepo.Arn
+      # Event Types: https://docs.aws.amazon.com/dtconsole/latest/userguide/concepts.html#concepts-api
+      EventTypeIds:
+      - codecommit-repository-comments-on-commits
+      - codecommit-repository-comments-on-pull-requests
+      - codecommit-repository-pull-request-created
+      - codecommit-repository-pull-request-source-updated
+      - codecommit-repository-branches-and-tags-created
+      Targets:
+      - TargetType: AWSChatbotSlack
+        TargetAddress: !Ref DevOpsChatBotSlack
+
+
+  DevOpsSNSTopicCodeCommit:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: CodeCommitTriggerTopic
+      DisplayName: CodeCommitTriggerTopic
+
+
+  DevOpsRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !Join ["-", [!Ref Organization, "demo-repo"]]
+      RepositoryDescription: Demo Repository for DevOps Professional
+      # Refrence: https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-notify.html
+      Triggers:
+      - Name: DemoTriggerToSNS
+        CustomData: Demo
+        DestinationArn: !Ref DevOpsSNSTopicCodeCommit
+        Branches:
+          - master
+        Events:
+          - all
+

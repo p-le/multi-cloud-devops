@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  RepositoryName:
+    Description: An ECR repository name
+    Type: String
+
+Resources:
+
+  ECRRepositoryDemo:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      # ImageScanningConfiguration: Json
+      # ImageTagMutability: String
+      # LifecyclePolicy:
+      #   LifecyclePolicy
+      # RepositoryPolicyText: Json
+      # Tags:
+      #   - Tag
+
+Outputs:
+  ECRRepository:
+    Description: A reference to the created ECR Repository
+    Value: !Ref ECRRepositoryDemo

@@ -1,0 +1,9 @@
+{
+  "Parameters" : {
+    "DBName" : "wordpress",
+    "DBPassword" : "12345678",
+    "DBRootPassword" : "12345678",
+    "DBUser" : "phule",
+    "KeyName" : "devops-ec2"
+  }
+}

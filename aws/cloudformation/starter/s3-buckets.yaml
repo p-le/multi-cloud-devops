@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Create basic S3 Buckets for new Region.
+
+Resources:
+  BucketCredentials:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ["-", ["general-credentials", !Ref AWS::Region]]
+      LifecycleConfiguration:
+        Rules:
+        - Id: NoncurrentVersionExpiration
+          Status: Enabled
+          NoncurrentVersionExpirationInDays: 1
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketCodeCommit:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ["-", ["devops-codecommit", !Ref AWS::Region]]
+      LifecycleConfiguration:
+        Rules:
+        - Id: NoncurrentVersionExpiration
+          Status: Enabled
+          NoncurrentVersionExpirationInDays: 1
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketCodeBuild:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ["-", ["devops-codebuild", !Ref AWS::Region]]
+      LifecycleConfiguration:
+        Rules:
+        - Id: NoncurrentVersionExpiration
+          Status: Enabled
+          NoncurrentVersionExpirationInDays: 1
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketCodeDeploy:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ["-", ["devops-codedeploy", !Ref AWS::Region]]
+      LifecycleConfiguration:
+        Rules:
+        - Id: NoncurrentVersionExpiration
+          Status: Enabled
+          NoncurrentVersionExpirationInDays: 1
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketCodePipeline:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ["-", ["devops-codepipeline", !Ref AWS::Region]]
+      LifecycleConfiguration:
+        Rules:
+        - Id: NoncurrentVersionExpiration
+          Status: Enabled
+          NoncurrentVersionExpirationInDays: 1
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketTerraformState:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join ["-", ["infra-terraform-state", !Ref AWS::Region]]
+      LifecycleConfiguration:
+        Rules:
+        - Id: NoncurrentVersionExpiration
+          Status: Enabled
+          NoncurrentVersionExpirationInDays: 1
+      VersioningConfiguration:
+        Status: Enabled
