@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Create basic ECS Cluster on EC2
+
+Resources:
+  DemoECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: DemoEC2Cluster
+      CapacityProviders:
+        - String
+      ClusterSettings:
+        - ClusterSettings
+      DefaultCapacityProviderStrategy:
+        - CapacityProviderStrategyItem
+      Tags:
+        - Key: Environment
+          Value: staging
+
+Outputs:
+  DemoECSCluster:
+    Value: !Ref DemoECSCluster

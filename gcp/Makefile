@@ -1,9 +1,29 @@
-.PHONY: gcloud
-gcloud: GCLOUD_CLI_VERSION := 337.0.0 # https://hub.docker.com/r/google/cloud-sdk/tags
-gcloud:
+.PHONY: gcp-deploy-management
+gcp-deploy-management: DEPLOYMENT_NAME := iam-deployment
+gcp-deploy-management: CONFIG_PATH := management/iam.yaml
+gcp-deploy-management:
+	# $(MAKE) gcloud-sdk ARG="deployment-manager deployments create $(DEPLOYMENT_NAME) --config $(CONFIG_PATH) --preview"
+	$(MAKE) gcloud-sdk ARG="deployment-manager deployments create $(DEPLOYMENT_NAME) --config $(CONFIG_PATH)"
+
+
+.PHONY: gcp-describe-management
+gcp-describe-management: DEPLOYMENT_NAME := iam-deployment
+gcp-describe-management:
+	$(MAKE) gcloud-sdk ARG="deployment-manager deployments describe  $(DEPLOYMENT_NAME)"
+
+
+
+.PHONY: gcloud-sdk
+gcloud-sdk :
 	@docker container run -it --rm \
-		-v ${BASE_PATH}/gcloud/config:/gcloud/config \
-		-v ${BASE_PATH}/gcloud/certs:/certs \
+		-v ${BASE_PATH}/gcp:/work \
+		-v ${BASE_PATH}/miscs/gcp/config:/gcloud/config \
 		-e CLOUDSDK_CONFIG=/gcloud/config \
-		google/cloud-sdk:${GCLOUD_CLI_VERSION} \
+		-w /work \
+		google/cloud-sdk:${GCLOUD_SDK_VERSION} \
 		gcloud $(ARG)
+
+.PHONY: gcloud-authenticate
+gcloud-authenticate :
+	@$(MAKE) gcloud-sdk ARG="auth login"
+	@$(MAKE) gcloud-sdk ARG="config set project multicloud-313515"

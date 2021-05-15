@@ -1,5 +1,4 @@
 .PHONY: awscli
-awscli: AWS_CLI_VERSION := 2.1.39 	# https://hub.docker.com/r/amazon/aws-cli/tags?page=1&ordering=last_updated
 awscli:
 	@docker container run -it --rm \
 		-v $(BASE_PATH)/aws/config:/root/.aws \

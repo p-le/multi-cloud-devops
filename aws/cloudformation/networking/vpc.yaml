@@ -276,12 +276,52 @@ Resources:
 
 
   # ---- Security Groups ----
-  NoIngressSecurityGroup:
+  NoIngressSecurityGroup1:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: "no-ingress-sg"
-      GroupDescription: "Security group with no ingress rule"
       VpcId: !Ref VPC
+      GroupName: "no-ingress-sg1"
+      GroupDescription: "Security group with no ingress rule and limited egress"
+      SecurityGroupEgress:
+      - Description: Egress Traffic
+        # CidrIp: 0.0.0.0/0
+        CidrIp: 152.165.29.184/32
+        IpProtocol: "-1"
+
+
+  AllowHTTPHTTPSIngressSecurityGroup1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupName: "allow-http-https-sg1"
+      GroupDescription: "Security group for HTTP/HTTPS"
+      SecurityGroupIngress:
+      - Description: Allow Inbound HTTP
+        # CidrIp: 0.0.0.0/0
+        CidrIp: 152.165.29.184/32
+        FromPort: 80
+        ToPort: 80
+        IpProtocol: tcp
+      - Description: Allow Inbound HTTPS
+        # CidrIp: 0.0.0.0/0
+        CidrIp: 152.165.29.184/32
+        FromPort: 443
+        ToPort: 443
+        IpProtocol: tcp
+
+  AllowSSHIngressSecurityGroup1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupName: "allow-ssh-sg1"
+      GroupDescription: "Security group for SSH"
+      SecurityGroupIngress:
+      - Description: Allow Limited Inbound SSH
+        # CidrIp: 0.0.0.0/0
+        CidrIp: 152.165.29.184/32
+        FromPort: 22
+        ToPort: 22
+        IpProtocol: tcp
 
 Outputs:
   VPC:
@@ -322,4 +362,12 @@ Outputs:
 
   NoIngressSecurityGroup:
     Description: Security group with no ingress rule
-    Value: !Ref NoIngressSecurityGroup
+    Value: !Ref NoIngressSecurityGroup1
+
+  AllowHTTPHTTPSIngressSecurityGroup:
+    Description: Security group allow HTTP HTTPS
+    Value: !Ref AllowHTTPHTTPSIngressSecurityGroup1
+
+  AllowSSHIngressSecurityGroup:
+    Description: Security group allow SSH
+    Value: !Ref AllowSSHIngressSecurityGroup1

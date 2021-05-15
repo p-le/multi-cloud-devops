@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Create basic ECS Cluster on Fargate
+
+Parameters:
+  SecurityGroups:
+    Description: Security Groups for Service
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  SubnetIDs:
+    Description: Subnet IDs for Service
+    Type: List<AWS::EC2::Subnet::Id>
+
+Resources:
+  DemoECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: DemoFargateCluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      # DefaultCapacityProviderStrategy:
+      # - CapacityProvider: FARGATE
+      #   Weight: 1
+      # - CapacityProvider: FARGATE_SPOT
+      #   Weight: 1
+      Tags:
+        - Key: Environment
+          Value: staging
+
+  DemoTaskExecutionIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: PhuleAWSServiceRoleForECSTaskExecution
+      Description: IAM Role for ECS Execution Role
+      Path: /
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ecs.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  DemoTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: "256"
+      Memory: "512"
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn: !Ref DemoTaskExecutionIAMRole
+      NetworkMode: awsvpc
+      ContainerDefinitions:
+      - Name: grafana
+        Image: grafana/grafana:7.5.6
+        Cpu: 256
+        Memory: 512
+        Essential: true
+
+  DemoService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref DemoECSCluster
+      ServiceName: DemoService
+      DesiredCount: 1
+      TaskDefinition: !Ref DemoTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups: !Ref SecurityGroups
+          Subnets: !Ref SubnetIDs
+
+Outputs:
+  DemoECSCluster:
+    Value: !Ref DemoECSCluster
