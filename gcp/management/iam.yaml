@@ -1,6 +1,0 @@
-resources:
-- name: cloudrun-deployer
-  type: iam.v1.serviceAccount
-  properties:
-    accountId: cloudrun-deployer
-    displayName: serviceAccount-cloudrun-deployer
