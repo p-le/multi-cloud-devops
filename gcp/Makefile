@@ -50,6 +50,7 @@ gcloud-sdk:
 		-v ${BASE_PATH}/gcp:/work \
 		-v ${BASE_PATH}/miscs/gcp/config:/gcloud/config \
 		-v ${BASE_PATH}/miscs/gcp/credentials:/gcloud/credentials \
+		$(ADDITIONAL_VOLUMES) \
 		-e CLOUDSDK_CONFIG=/gcloud/config \
 		cloud-sdk:${GCLOUD_SDK_VERSION} \
 		gcloud $(ARG)
@@ -60,15 +61,21 @@ gcloud-terraform-sdk:
 		-v ${BASE_PATH}/gcp:/work \
 		-v ${BASE_PATH}/miscs/gcp/config:/gcloud/config \
 		-v ${BASE_PATH}/miscs/gcp/credentials:/gcloud/credentials \
+		$(ADDITIONAL_VOLUMES) \
 		-e CLOUDSDK_CONFIG=/gcloud/config \
 		-e GOOGLE_APPLICATION_CREDENTIALS=/gcloud/credentials/$(CREDENTIAL_FILE) \
 		cloud-sdk-terraform:$(GCLOUD_SDK_VERSION)_$(TERRAFORM_VERSION) \
 		$(ARG)
 
+.PHONY: gcloud-activate-configuration
+gcloud-activate-configuration:
+	@$(MAKE) gcloud-sdk ARG="config set project $(PROJECT_ID)"
+
 .PHONY: gcloud-authenticate
 gcloud-authenticate:
+	@$(MAKE) gcloud-sdk ARG="config configurations create $(CONFIGURATION_NAME) --active"
 	@$(MAKE) gcloud-sdk ARG="auth login"
-	@$(MAKE) gcloud-sdk ARG="config set project $(PROJECT_ID)"
+	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(PROJECT_ID)
 
 .PHONY: gcloud-configurations
 gcloud-configurations:
