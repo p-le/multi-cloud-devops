@@ -10,6 +10,7 @@ resource "random_id" "youtube_ml_suffix" {
   byte_length = 4
 }
 
+
 resource "google_folder" "demo" {
     display_name = "Demo"
     parent       = local.organization_id
@@ -35,4 +36,9 @@ resource "google_project" "youtube_ml_stage" {
     name       = "Youtube ML Stage"
     project_id = "youtube-ml-stage-${random_id.youtube_ml_suffix.hex}"
     folder_id  = google_folder.youtube_ml.name
+}
+
+module "multicloud_architect" {
+    source      = "./projects/multicloud-architect"
+    folder_id   = google_folder.demo.name
 }

@@ -62,6 +62,7 @@ gcloud-terraform-sdk:
 		-v ${BASE_PATH}/miscs/gcp/config:/gcloud/config \
 		-v ${BASE_PATH}/miscs/gcp/credentials:/gcloud/credentials \
 		$(ADDITIONAL_VOLUMES) \
+		-e GOOGLE_PROJECT=$(PROJECT_ID) \
 		-e CLOUDSDK_CONFIG=/gcloud/config \
 		-e GOOGLE_APPLICATION_CREDENTIALS=/gcloud/credentials/$(CREDENTIAL_FILE) \
 		cloud-sdk-terraform:$(GCLOUD_SDK_VERSION)_$(TERRAFORM_VERSION) \
@@ -73,7 +74,7 @@ gcloud-activate-configuration:
 
 .PHONY: gcloud-authenticate
 gcloud-authenticate:
-	@$(MAKE) gcloud-sdk ARG="config configurations create $(CONFIGURATION_NAME) --active"
+	@$(MAKE) gcloud-sdk ARG="config configurations create $(CONFIGURATION_NAME) --activate"
 	@$(MAKE) gcloud-sdk ARG="auth login"
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(PROJECT_ID)
 
@@ -81,5 +82,7 @@ gcloud-authenticate:
 gcloud-configurations:
 	@$(MAKE) gcloud-sdk ARG="config configurations list"
 
-include $(BASE_PATH)/gcp/organization.mk
-include $(BASE_PATH)/gcp/viet-ocr-stage.mk
+include $(BASE_PATH)/gcp/project-organization.mk
+include $(BASE_PATH)/gcp/project-viet-ocr.mk
+include $(BASE_PATH)/gcp/project-bookstore.mk
+include $(BASE_PATH)/gcp/project-idp-sql.mk

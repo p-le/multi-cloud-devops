@@ -1,8 +1,13 @@
+# Pre-requiresites
+- Docker installed
 # AWS
 
 ## AWS Cloudformation
 
 # GCP Infrastructure As Code
+
+Service Management API
+- Cloud Endpoints
 
 ## Cloud Deployment Manager
 Note: v1 Resources is kinds of limited in resources

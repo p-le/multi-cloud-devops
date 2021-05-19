@@ -1,0 +1,16 @@
+type: google.api.Service
+config_version: 3
+name: ${_HOSTNAME}
+title: Cloud Endpoints + Cloud Run gRPC
+apis:
+  - name: demo.helloworld.Greeter
+usage:
+  rules:
+  - selector: demo.helloworld.Greeter.SayHello
+    allow_unregistered_calls: true
+  - selector: demo.helloworld.Greeter.SayHelloAgain
+    allow_unregistered_calls: true
+backend:
+  rules:
+    - selector: "*"
+      address: grpcs://${_HOSTNAME}

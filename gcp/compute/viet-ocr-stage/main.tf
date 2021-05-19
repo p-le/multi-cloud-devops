@@ -1,16 +1,14 @@
 locals {
-    location = "asia-northeast1"
+    project_id  = "viet-ocr-stage-8650711b"
+    location    = "asia-northeast1"
     viet_ocr_image = "asia-northeast1-docker.pkg.dev/viet-ocr-stage-8650711b/viet-ocr-stage-repository/viet-ocr"
     viet_ocr_image_version = "1.0.0"
-}
-
-data "google_iam_policy" "viet_ocr_noauth" {
-    binding {
-        role = "roles/run.invoker"
-        members = [
-            "allUsers",
-        ]
-    }
+    viet_ocr_backend_image = "asia-northeast1-docker.pkg.dev/viet-ocr-stage-8650711b/viet-ocr-stage-repository/viet-ocr-backend"
+    viet_ocr_backend_image_version = "1.0.0"
+    viet_ocr_espv2_image            = "asia-northeast1-docker.pkg.dev/viet-ocr-stage-8650711b/viet-ocr-stage-repository/viet-ocr-espv2"
+    viet_ocr_espv2_image_version    = "1.0.1"
+    viet_ocr_api_gateway_image            = "asia-northeast1-docker.pkg.dev/viet-ocr-stage-8650711b/viet-ocr-stage-repository/viet-ocr-api-gateway"
+    viet_ocr_api_gateway_image_version    = "viet-ocr-espv2-srv-6122-7oocugmkoq-an.a.run.app-2021-05-18r0"
 }
 
 resource "google_artifact_registry_repository" "viet_ocr_docker_repository" {
@@ -18,7 +16,7 @@ resource "google_artifact_registry_repository" "viet_ocr_docker_repository" {
     location = local.location
     repository_id   = "viet-ocr-stage-repository"
     description     = "Repository for Viet OCR"
-    project = "viet-ocr-stage-8650711b"
+    project = local.project_id
     format  = "DOCKER"
 }
 
@@ -43,35 +41,38 @@ resource "google_project_iam_member" "viet_ocr_cloudrun_artifactregistry_reader"
 }
 
 
-resource "google_cloud_run_service" "viet_ocr" {
-    name     = "viet-ocr-backend-srv"
-    location = local.location
+# module "viet_ocr_backend" {
+#     source      = "./cloudrun/services/viet-ocr-backend"
+#     name        = "viet-ocr-backend-srv"
+#     image       = "${local.viet_ocr_backend_image}:${local.viet_ocr_backend_image_version}"
+#     location    = local.location
+#     labels      = {
+#         role = "viet-ocr-backend"
+#     }
+#     service_account_name = google_service_account.viet_ocr_cloudrun_revision.email
+# }
 
-    template {
-        spec {
-            containers {
-                image = "${local.viet_ocr_image}:${local.viet_ocr_image_version}"
-            }
-            service_account_name = google_service_account.viet_ocr_cloudrun_revision.email
-        }
-        metadata {
-            labels = {
-                role = "viet-ocr-backend"
-            }
-        }
-    }
+# resource "random_id" "viet_ocr_espv2_cloudrun_service" {
+#   byte_length = 2
+# }
 
-    traffic {
-        percent         = 100
-        latest_revision = true
-    }
+# module "viet_ocr_espv2" {
+#     source      = "./cloudrun/services/viet-ocr-espv2"
+#     name        = "viet-ocr-espv2-srv-${random_id.viet_ocr_espv2_cloudrun_service.hex}"
+#     image       = "${local.viet_ocr_espv2_image}:${local.viet_ocr_espv2_image_version}"
+#     location    = local.location
+#     labels      = {
+#         role = "viet-ocr-espv2"
+#     }
+#     service_account_name = google_service_account.viet_ocr_cloudrun_revision.email
+# }
 
-    autogenerate_revision_name = true
-}
-
-resource "google_cloud_run_service_iam_policy" "viet_ocr_noauth" {
-  location    = google_cloud_run_service.viet_ocr.location
-  project     = google_cloud_run_service.viet_ocr.project
-  service     = google_cloud_run_service.viet_ocr.name
-  policy_data = data.google_iam_policy.viet_ocr_noauth.policy_data
-}
+# module "viet_ocr_api_gateway" {
+#     source      = "./cloudrun/services/viet-ocr-api-gateway"
+#     name        = "viet-ocr-api-gateway-srv"
+#     image       = "${local.viet_ocr_api_gateway_image}:${local.viet_ocr_api_gateway_image_version}"
+#     location    = local.location
+#     labels      = {
+#         role = "viet-ocr-api-gateway"
+#     }
+# }

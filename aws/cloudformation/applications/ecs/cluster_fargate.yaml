@@ -53,8 +53,8 @@ Resources:
       ExecutionRoleArn: !Ref DemoTaskExecutionIAMRole
       NetworkMode: awsvpc
       ContainerDefinitions:
-      - Name: grafana
-        Image: grafana/grafana:7.5.6
+      - Name: nginx
+        Image: nginx
         Cpu: 256
         Memory: 512
         Essential: true
