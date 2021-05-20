@@ -8,13 +8,13 @@ idp-sql-gcloud-authenticate:
 	@$(MAKE) gcloud-authenticate \
 		CONFIGURATION_NAME=idp-sql \
 		PROJECT_ID=$(IDP_SQL_PROJECT_ID)
-	@$(MAKE) gcloud-sdk ARG="secrets versions access $(IDP_SQL_TF_VERSION) --secret=$(IDP_SQL_TF_KEY)" | grep -v "make" > ./miscs/gcp/credentials/$(addsuffix .json, $(IDP_SQL_TF_KEY))
+	@$(MAKE) gcloud-sdk CMD="gcloud secrets versions access $(IDP_SQL_TF_VERSION) --secret=$(IDP_SQL_TF_KEY)" | grep -v "make" > ./miscs/gcp/credentials/$(addsuffix .json, $(IDP_SQL_TF_KEY))
 
 .PHONY: idp-sql-tf-init
 idp-sql-tf-init:
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(IDP_SQL_PROJECT_ID)
 	@$(MAKE) gcloud-terraform-sdk \
-		ARG="-chdir=$(IDP_SQL_TF_SOURCE_DIR) init" \
+		CMD="terraform -chdir=$(IDP_SQL_TF_SOURCE_DIR) init" \
 		PROJECT_ID=$(IDP_SQL_PROJECT_ID) \
 		CREDENTIAL_FILE=$(addsuffix .json, $(IDP_SQL_TF_KEY))
 
@@ -22,7 +22,7 @@ idp-sql-tf-init:
 idp-sql-tf-plan:
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(IDP_SQL_PROJECT_ID)
 	@$(MAKE) gcloud-terraform-sdk \
-		ARG="-chdir=$(IDP_SQL_TF_SOURCE_DIR) plan" \
+		CMD="terraform -chdir=$(IDP_SQL_TF_SOURCE_DIR) plan" \
 		PROJECT_ID=$(IDP_SQL_PROJECT_ID) \
 		CREDENTIAL_FILE=$(addsuffix .json, $(IDP_SQL_TF_KEY))
 
@@ -30,7 +30,7 @@ idp-sql-tf-plan:
 idp-sql-tf-apply:
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(IDP_SQL_PROJECT_ID)
 	@$(MAKE) gcloud-terraform-sdk \
-		ARG="-chdir=$(IDP_SQL_TF_SOURCE_DIR) apply" \
+		CMD="terraform -chdir=$(IDP_SQL_TF_SOURCE_DIR) apply" \
 		PROJECT_ID=$(IDP_SQL_PROJECT_ID) \
 		CREDENTIAL_FILE=$(addsuffix .json, $(IDP_SQL_TF_KEY))
 

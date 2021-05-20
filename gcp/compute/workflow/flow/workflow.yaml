@@ -1,0 +1,38 @@
+- randomgen_function:
+    call: http.get
+    args:
+      url: ${_RANDOMGEN_TRIGGER_URL}
+      auth:
+        type: OIDC
+    result: randomgen_result
+
+- multiply_function:
+    call: http.post
+    args:
+      url: ${_MULTIPLY_TRIGGER_URL}
+      body:
+        input: $${randomgen_result.body.random}
+      auth:
+        type: OIDC
+    result: multiply_result
+
+- log_function:
+    call: http.get
+    args:
+      url: https://api.mathjs.org/v4/
+      query:
+        expr: $${"log(" + string(multiply_result.body.multiplied) + ")"}
+    result: log_result
+
+- floor_function:
+    call: http.post
+    args:
+        url: ${_FLOOR_SERVICE_ENDPOINT}
+        auth:
+          type: OIDC
+        body:
+          input: $${log_result.body}
+    result: floor_result
+
+- return_result:
+    return: $${floor_result}

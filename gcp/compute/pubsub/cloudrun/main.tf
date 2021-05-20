@@ -12,30 +12,13 @@ resource "random_id" "default" {
 }
 
 resource "google_service_account" "default" {
-    account_id   = "${var.name}-cloud-run-sa"
-    display_name = "IDP SQL Cloud Run Service Account"
+    account_id   = "pubsub-app-cloud-run-sa"
+    display_name = "PubSub App Cloud Run Service Account"
 }
 
 resource "google_project_iam_member" "cloudrun_invoker" {
     role    = "roles/run.invoker"
     member  = "serviceAccount:${google_service_account.default.email}"
-}
-
-resource "google_project_iam_member" "cloudsql_client" {
-    role    = "roles/cloudsql.client"
-    member  = "serviceAccount:${google_service_account.default.email}"
-}
-
-resource "google_project_iam_member" "secret_accessor" {
-    role    = "roles/secretmanager.secretAccessor"
-    member  = "serviceAccount:${google_service_account.default.email}"
-}
-
-resource "google_secret_manager_secret_iam_member" "secret-access" {
-  provider = google-beta
-  secret_id = var.db_credentials_secret_id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.default.email}"
 }
 
 
@@ -49,10 +32,6 @@ resource "google_cloud_run_service" "default" {
         spec {
             containers {
                 image = var.image
-                env {
-                    name = "CLOUD_SQL_CREDENTIALS_SECRET"
-                    value = var.db_credentials_version_id
-                }
             }
             service_account_name = google_service_account.default.email
         }
@@ -60,7 +39,6 @@ resource "google_cloud_run_service" "default" {
             annotations = {
                 "autoscaling.knative.dev/minScale"      = "0"
                 "autoscaling.knative.dev/maxScale"      = "3"
-                "run.googleapis.com/cloudsql-instances" = var.cloudsql_connection_name
                 "run.googleapis.com/launch-stage"       = "BETA"
             }
         }
@@ -69,12 +47,6 @@ resource "google_cloud_run_service" "default" {
     traffic {
         percent         = 100
         latest_revision = true
-    }
-
-    lifecycle {
-        ignore_changes = [
-            metadata.0.annotations,
-        ]
     }
 
     autogenerate_revision_name = true
