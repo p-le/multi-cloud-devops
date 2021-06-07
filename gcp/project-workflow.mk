@@ -10,28 +10,10 @@ workflow-gcloud-authenticate:
 		PROJECT_ID=$(WORKFLOW_PROJECT_ID)
 	@$(MAKE) gcloud-sdk CMD="gcloud secrets versions access $(WORKFLOW_TF_VERSION) --secret=$(WORKFLOW_TF_KEY)" | grep -v "make" > ./miscs/gcp/credentials/$(addsuffix .json, $(WORKFLOW_TF_KEY))
 
-
-.PHONY: workflow-tf-init
-workflow-tf-init:
+.PHONY: workflow-tf
+workflow-tf:
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(WORKFLOW_PROJECT_ID)
 	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(WORKFLOW_TF_SRC_DIR) init" \
-		PROJECT_ID=$(WORKFLOW_PROJECT_ID) \
-		CREDENTIAL_FILE=$(addsuffix .json, $(WORKFLOW_TF_KEY))
-
-
-.PHONY: workflow-tf-plan
-workflow-tf-plan:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(WORKFLOW_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(WORKFLOW_TF_SRC_DIR) plan" \
-		PROJECT_ID=$(WORKFLOW_PROJECT_ID) \
-		CREDENTIAL_FILE=$(addsuffix .json, $(WORKFLOW_TF_KEY))
-
-.PHONY: workflow-tf-apply
-workflow-tf-apply:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(WORKFLOW_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(WORKFLOW_TF_SRC_DIR) apply" \
+		CMD="terraform -chdir=$(WORKFLOW_TF_SRC_DIR) $(TF_CMD)" \
 		PROJECT_ID=$(WORKFLOW_PROJECT_ID) \
 		CREDENTIAL_FILE=$(addsuffix .json, $(WORKFLOW_TF_KEY))

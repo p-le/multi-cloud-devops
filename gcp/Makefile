@@ -25,8 +25,8 @@ gcp-deploy-management-basic-update:
 	$(MAKE) gcloud-sdk CMD="gcloud deployment-manager deployments update $(DEPLOYMENT_NAME) --config $(CONFIG_PATH)"
 
 
-.PHONY: build-gcloud-sdk-image
-build-gcloud-sdk-image:
+.PHONY: gcloud-build-extend-sdk-image
+gcloud-build-extend-sdk-image:
 	@cd gcp/gcloud-sdk && \
 		docker image build \
 			-t cloud-sdk:$(GCLOUD_SDK_VERSION) \
@@ -41,7 +41,6 @@ gcloud-build-terraform-image:
 		-t cloud-sdk-terraform:$(GCLOUD_SDK_VERSION)_$(TERRAFORM_VERSION) \
 		.
 
-
 .PHONY: gcloud-generate-terraform-key
 gcloud-generate-terraform-key:
 	@$(MAKE) gcloud-sdk CMD="gcloud iam service-accounts keys create /gcloud/credentials/terraform-key.json --iam-account=provisioner-terraform@multicloud-313515.iam.gserviceaccount.com"
@@ -52,9 +51,10 @@ gcloud-sdk:
 		-v ${BASE_PATH}/gcp:/work \
 		-v ${BASE_PATH}/miscs/gcp/config:/gcloud/config \
 		-v ${BASE_PATH}/miscs/gcp/credentials:/gcloud/credentials \
+		-v ${BASE_PATH}/miscs/kube:/root/.kube \
 		$(ADDITIONAL_VOLUMES) \
 		-e CLOUDSDK_CONFIG=/gcloud/config \
-		cloud-sdk:${GCLOUD_SDK_VERSION} $(CMD)
+		gcr.io/google.com/cloudsdktool/cloud-sdk:${GCLOUD_SDK_VERSION} $(CMD)
 
 .PHONY: gcloud-terraform-sdk
 gcloud-terraform-sdk:
@@ -62,7 +62,9 @@ gcloud-terraform-sdk:
 		-v ${BASE_PATH}/gcp:/work \
 		-v ${BASE_PATH}/miscs/gcp/config:/gcloud/config \
 		-v ${BASE_PATH}/miscs/gcp/credentials:/gcloud/credentials \
+		-v ${BASE_PATH}/miscs/kube:/root/.kube \
 		$(ADDITIONAL_VOLUMES) \
+		-e KUBE_CONFIG_PATH=/root/.kube \
 		-e GOOGLE_PROJECT=$(PROJECT_ID) \
 		-e CLOUDSDK_CONFIG=/gcloud/config \
 		-e GOOGLE_APPLICATION_CREDENTIALS=/gcloud/credentials/$(CREDENTIAL_FILE) \
@@ -82,6 +84,11 @@ gcloud-authenticate:
 gcloud-configurations:
 	@$(MAKE) gcloud-sdk CMD="gcloud config configurations list"
 
+.PHONY: gcloud-gke-clusters
+gcloud-gke-clusters:
+	@$(MAKE) gcloud-sdk CMD="gcloud container clusters list"
+
+include $(BASE_PATH)/gcp/project-storage.mk
 include $(BASE_PATH)/gcp/project-organization.mk
 include $(BASE_PATH)/gcp/project-viet-ocr.mk
 include $(BASE_PATH)/gcp/project-bookstore.mk
@@ -89,3 +96,8 @@ include $(BASE_PATH)/gcp/project-idp-sql.mk
 include $(BASE_PATH)/gcp/project-pubsub.mk
 include $(BASE_PATH)/gcp/project-system-package.mk
 include $(BASE_PATH)/gcp/project-workflow.mk
+include $(BASE_PATH)/gcp/project-image-processing.mk
+include $(BASE_PATH)/gcp/project-gks-clusters.mk
+include $(BASE_PATH)/gcp/project-anthos.mk
+include $(BASE_PATH)/gcp/project-k8s.mk
+include $(BASE_PATH)/gcp/project-viet-soccer.mk

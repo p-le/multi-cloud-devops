@@ -13,28 +13,13 @@ $(VIET_OCR_STAGE_PROJECT_NAME)-gcloud-authenticate:
 	@$(MAKE) gcloud-sdk CMD="gcloud secrets versions access $(VIET_OCR_STAGE_TF_KEY_VERSION) --secret=$(VIET_OCR_STAGE_TF_KEY)" > ./miscs/gcp/credentials/$(addsuffix .json, $(VIET_OCR_STAGE_TF_KEY))
 
 
-.PHONY: $(VIET_OCR_STAGE_PROJECT_NAME)-tf-init
+.PHONY: $(VIET_OCR_STAGE_PROJECT_NAME)-tf
 $(VIET_OCR_STAGE_PROJECT_NAME)-tf-init:
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(VIET_OCR_STAGE_PROJECT_ID)
 	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(VIET_OCR_STAGE_TF_SOURCE_DIR) init" \
+		CMD="terraform -chdir=$(VIET_OCR_STAGE_TF_SOURCE_DIR) $(TF_CMD)" \
 		CREDENTIAL_FILE=$(addsuffix .json, $(VIET_OCR_STAGE_TF_KEY))
 
-
-.PHONY: $(VIET_OCR_STAGE_PROJECT_NAME)-tf-plan
-$(VIET_OCR_STAGE_PROJECT_NAME)-tf-plan:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(VIET_OCR_STAGE_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(VIET_OCR_STAGE_TF_SOURCE_DIR) plan" \
-		CREDENTIAL_FILE=$(addsuffix .json, $(VIET_OCR_STAGE_TF_KEY))
-
-
-.PHONY: $(VIET_OCR_STAGE_PROJECT_NAME)-tf-apply
-$(VIET_OCR_STAGE_PROJECT_NAME)-tf-apply:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(VIET_OCR_STAGE_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(VIET_OCR_STAGE_TF_SOURCE_DIR) apply" \
-		CREDENTIAL_FILE=$(addsuffix .json, $(VIET_OCR_STAGE_TF_KEY))
 
 .PHONE: $(VIET_OCR_STAGE_PROJECT_NAME)-setup
 $(VIET_OCR_STAGE_PROJECT_NAME)-setup:

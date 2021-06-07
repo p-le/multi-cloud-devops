@@ -6,22 +6,8 @@ ORGANIZATION_CREDENTIAL_FILE=organization-manager-key.json
 organization-gcloud-configuration:
 	@$(MAKE) gcloud-sdk CMD="gcloud config configurations activate $(ORGANIZATION_GCLOUD_CONFIGURATION)"
 
-.PHONY: organization-tf-init
-organization-tf-init: organization-gcloud-configuration
+.PHONY: organization-tf
+organization-tf: organization-gcloud-configuration
 	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(ORGANIZATION_SOURCE_DIR) init" \
-		CREDENTIAL_FILE=$(ORGANIZATION_CREDENTIAL_FILE)
-
-
-.PHONY: organization-tf-plan
-organization-tf-plan: organization-gcloud-configuration
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(ORGANIZATION_SOURCE_DIR) plan" \
-		CREDENTIAL_FILE=$(ORGANIZATION_CREDENTIAL_FILE)
-
-
-.PHONY: organization-tf-apply
-organization-tf-apply: organization-gcloud-configuration
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(ORGANIZATION_SOURCE_DIR) apply" \
+		CMD="terraform -chdir=$(ORGANIZATION_SOURCE_DIR) $(TF_CMD)" \
 		CREDENTIAL_FILE=$(ORGANIZATION_CREDENTIAL_FILE)

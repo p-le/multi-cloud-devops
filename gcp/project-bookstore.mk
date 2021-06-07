@@ -10,25 +10,11 @@ bookstore-gcloud-authenticate:
 		PROJECT_ID=$(BOOKSTORE_PROJECT_ID)
 	@$(MAKE) gcloud-sdk CMD="gcloud secrets versions access $(BOOKSTORE_TF_VERSION) --secret=$(BOOKSTORE_TF_KEY)" | grep -v "make" > ./miscs/gcp/credentials/$(addsuffix .json, $(BOOKSTORE_TF_KEY))
 
-.PHONY: bookstore-tf-init
-bookstore-tf-init:
+.PHONY: bookstore-tf
+bookstore-tf:
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(BOOKSTORE_PROJECT_ID)
 	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(BOOKSTORE_TF_SOURCE_DIR) init" \
-		CREDENTIAL_FILE=$(addsuffix .json, $(BOOKSTORE_TF_KEY))
-
-.PHONY: bookstore-tf-plan
-bookstore-tf-plan:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(BOOKSTORE_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(BOOKSTORE_TF_SOURCE_DIR) plan" \
-		CREDENTIAL_FILE=$(addsuffix .json, $(BOOKSTORE_TF_KEY))
-
-.PHONY: bookstore-tf-apply
-bookstore-tf-apply:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(BOOKSTORE_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(BOOKSTORE_TF_SOURCE_DIR) apply" \
+		CMD="terraform -chdir=$(BOOKSTORE_TF_SOURCE_DIR) $(TF_CMD)" \
 		CREDENTIAL_FILE=$(addsuffix .json, $(BOOKSTORE_TF_KEY))
 
 .PHONE: bookstore-setup

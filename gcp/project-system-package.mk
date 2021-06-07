@@ -11,27 +11,10 @@ system-package-gcloud-authenticate:
 	@$(MAKE) gcloud-sdk CMD="gcloud secrets versions access $(SYSTEM_PACKAGE_TF_VERSION) --secret=$(SYSTEM_PACKAGE_TF_KEY)" | grep -v "make" > ./miscs/gcp/credentials/$(addsuffix .json, $(SYSTEM_PACKAGE_TF_KEY))
 
 
-.PHONY: system-package-tf-init
-system-package-tf-init:
+.PHONY: system-package-tf
+system-package-tf:
 	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(SYSTEM_PACKAGE_PROJECT_ID)
 	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(SYSTEM_PACKAGE_TF_SRC_DIR) init" \
-		PROJECT_ID=$(SYSTEM_PACKAGE_PROJECT_ID) \
-		CREDENTIAL_FILE=$(addsuffix .json, $(SYSTEM_PACKAGE_TF_KEY))
-
-
-.PHONY: system-package-tf-plan
-system-package-tf-plan:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(SYSTEM_PACKAGE_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(SYSTEM_PACKAGE_TF_SRC_DIR) plan" \
-		PROJECT_ID=$(SYSTEM_PACKAGE_PROJECT_ID) \
-		CREDENTIAL_FILE=$(addsuffix .json, $(SYSTEM_PACKAGE_TF_KEY))
-
-.PHONY: system-package-tf-apply
-system-package-tf-apply:
-	@$(MAKE) gcloud-activate-configuration PROJECT_ID=$(SYSTEM_PACKAGE_PROJECT_ID)
-	@$(MAKE) gcloud-terraform-sdk \
-		CMD="terraform -chdir=$(SYSTEM_PACKAGE_TF_SRC_DIR) apply" \
+		CMD="terraform -chdir=$(SYSTEM_PACKAGE_TF_SRC_DIR) $(TF_CMD)" \
 		PROJECT_ID=$(SYSTEM_PACKAGE_PROJECT_ID) \
 		CREDENTIAL_FILE=$(addsuffix .json, $(SYSTEM_PACKAGE_TF_KEY))

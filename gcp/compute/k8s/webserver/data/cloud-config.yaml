@@ -1,0 +1,21 @@
+#cloud-config
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+
+runcmd:
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update -y
+  - apt-get install -y docker-ce docker-ce-cli containerd.io
+  - systemctl enable docker
+  - systemctl daemon-reload
+  - systemctl start docker
+  - gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
+  - docker container run -d -e PORT=8080 -p 80:8080 --name hello-app asia-northeast1-docker.pkg.dev/multicloud-architect-b5e6e149/cloud-native-registry/hello-app:2.0.1
+
+
+final_message: "The system is finally up, after $UPTIME seconds"

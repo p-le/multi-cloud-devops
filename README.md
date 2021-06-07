@@ -25,4 +25,7 @@ gcloud deployment-manager types list
 gcloud beta deployment-manager types list --project gcp-types
 ```
 
-## Terraform
+## Terraform Examples
+- GKS: https://github.com/terraform-google-modules/terraform-google-kubernetes-engine
+
+https://github.com/terraform-google-modules/terraform-google-project-factory

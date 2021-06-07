@@ -3,18 +3,10 @@ locals {
     workflow_region = "asia-southeast1" # Limited region
 }
 
-resource "google_artifact_registry_repository" "workflow_docker" {
-    provider    = google-beta
-    location    = local.region
-    format      = "DOCKER"
-    repository_id   = "workflow"
-    description     = "Repository for Workflow App"
-}
-
 resource "google_storage_bucket" "workflow_functions_bucket" {
     name = "workflow-functions"
     location = "ASIA"
-
+    force_destroy = true
     versioning {
         enabled = true
     }

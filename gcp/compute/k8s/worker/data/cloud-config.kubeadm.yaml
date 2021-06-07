@@ -1,0 +1,56 @@
+#cloud-config
+users:
+  - name: k8s
+    shell: /bin/bash
+
+write_files:
+  - path: /etc/modules-load.d/k8s.conf
+    permissions: 0644
+    owner: root:root
+    content: |
+      br_netfilter
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+  - path: /etc/docker/daemon.json
+    permissions: 0644
+    owner: root:root
+    content: |
+      {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "100m"
+        },
+        "storage-driver": "overlay2"
+      }
+  - path: /etc/profile.d/00-k8s-alias.sh
+    permissions: 0755
+    owner: root:root
+    content: |
+      alias kg='kubectl get'
+      alias ka='kubectl apply'
+      alias kd='kubectl describe'
+      alias kl='kubectl logs'
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+
+runcmd:
+  - modprobe br_netfilter
+  - sysctl --system
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+  - curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+  - apt-get update -y
+  - apt-get install -y docker-ce docker-ce-cli containerd.io kubeadm kubelet kubectl
+  - systemctl enable docker
+  - systemctl daemon-reload
+  - systemctl start docker
+  - kubeadm config images pull
+
+final_message: "The system is finally up, after $UPTIME seconds"
